@@ -6,11 +6,11 @@ from pymysql.cursors import DictCursor
 import datetime
 from functools import wraps
 
-engine = create_engine('mysql+pymysql://root:root@localhost/msportal_sqa')
+engine = create_engine('mysql+pymysql://{}:{}@localhost/msportal_sqa')
 conn = engine.raw_connection()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'THIS IS MY KEY'
+app.config['SECRET_KEY'] = f"{}" # will be fethched from DB
 
 
 def jwt_token_required(func):
@@ -31,6 +31,7 @@ def jwt_token_required(func):
 
 @app.route('/token',methods=['POST'])
 def get_token():
+    """Api token to access the api"""
     if request.method == 'POST':
         data = request.data
         if not isinstance(data,dict):
@@ -40,9 +41,10 @@ def get_token():
             return jsonify({'token':token})
 
 
-@app.route('/index',methods = ['POST','GET'])
+@app.route('/index',methods = ['POST','GET','PUT'])
 @jwt_token_required
 def index():
+    """HTTP calls to perform """
     if request.method == 'GET':
         qry = "select * from emotions"
         cursor = conn.cursor(DictCursor)
@@ -56,11 +58,11 @@ def index():
             data = json.loads(data)
         return {'response':"The value is"+str(data['i']**2)}
 
-    if request.method == 'PATCH':
+    if request.method == 'PUT':
         pass
 
 
 
 if __name__ == '__main__':
     # pass
-    app.run()
+    app.run(debug=True)
